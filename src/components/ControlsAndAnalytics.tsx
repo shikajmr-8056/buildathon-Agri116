@@ -37,15 +37,28 @@ export type Mode = "Auto" | "Manual";
 export interface ControlsAndAnalyticsProps {
   // Real-time sensor readings from Firebase
   temp: number;
+  temp1?: number;
+  temp2?: number;
   humidity: number;
+  hum1?: number;
+  hum2?: number;
   lux: number;
+  ldr1?: number;
+  ldr2?: number;
   hoursLit: number;
   soilMoisture: number;
+  soil1Percent?: number;
+  soil2Wet?: boolean;
   mq2: number;
   soil1: number;
   soil2: number;
   lightRaw: number;
   ledBrightness: number;
+  led12Percent?: number;
+  led34Percent?: number;
+  pwm1?: number;
+  pwm2?: number;
+  humidifierState?: boolean;
   solarVoltage: number;
   lastUpdated: string | null;
 
@@ -83,15 +96,28 @@ export interface ControlsAndAnalyticsProps {
 
 export default function ControlsAndAnalytics({
   temp,
+  temp1 = 29.6,
+  temp2 = 0,
   humidity,
+  hum1 = 31,
+  hum2 = 0,
   lux,
+  ldr1 = 694,
+  ldr2 = 2826,
   hoursLit,
   soilMoisture,
+  soil1Percent = 45,
+  soil2Wet = true,
   mq2,
   soil1,
   soil2,
   lightRaw,
   ledBrightness,
+  led12Percent = 21,
+  led34Percent = 87,
+  pwm1 = 224,
+  pwm2 = 54,
+  humidifierState = true,
   solarVoltage,
   lastUpdated,
   mode,
@@ -200,14 +226,11 @@ export default function ControlsAndAnalytics({
     }
   };
 
-  // ── Dual Soil Probes Calibration (ESP32 ADC -> %) ──────────────
-  // ESP32 formula: map(raw, 4095, 1500, 0, 100)
-  const zone1Moisture = Math.round(
-    Math.max(0, Math.min(100, ((4095 - soil1) / (4095 - 1500)) * 100))
-  );
-  const zone2Moisture = Math.round(
-    Math.max(0, Math.min(100, ((4095 - soil2) / (4095 - 1500)) * 100))
-  );
+  // ── Dual Soil Probes Calibration (Hardware ESP32) ──────────────
+  // Soil 1 (GPIO 35): Direct percentage mapped on ESP32 (0–100%)
+  // Soil 2 (GPIO 27): Digital threshold probe (true = WET, false = DRY)
+  const zone1Moisture = soil1Percent !== undefined ? soil1Percent : soilMoisture;
+  const zone2Moisture = soil2Wet ? 85 : 20;
   const zoneDifference = Math.abs(zone1Moisture - zone2Moisture);
 
   return (
@@ -419,11 +442,7 @@ export default function ControlsAndAnalytics({
                       Hardware Telemetry (ESP32)
                     </span>
                     <span className="font-bold text-foreground">
-                      {ledBrightness > 0
-                        ? `${ledBrightness} / 255 PWM (${Math.round(
-                            (ledBrightness / 255) * 100
-                          )}% duty)`
-                        : "0 PWM · Standby"}
+                      CH1 (LED 3+4): {led34Percent}% (PWM: {pwm1}) · CH2 (LED 1+2): {led12Percent}% (PWM: {pwm2})
                     </span>
                   </div>
                   <div className="text-right">
@@ -765,7 +784,7 @@ export default function ControlsAndAnalytics({
                       / {profile.tempDayMin}–{profile.tempDayMax}°C Target
                     </span>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Humidity: <span className="font-semibold text-foreground">{humidity}%</span> (Target: {profile.humidityMin}–{profile.humidityMax}%) · Canopy Light: <span className="font-semibold text-foreground">{(lux / 1000).toFixed(1)}k lux</span>
+                      DHT1: <span className="font-semibold text-foreground">{temp1}°C</span> · DHT2: <span className="font-semibold text-foreground">{temp2 > 0 ? `${temp2}°C` : "Ready"}</span> · Humidity: <span className="font-semibold text-foreground">{humidity}% (H1:{hum1}%, H2:{hum2}%)</span>
                     </p>
                   </div>
                   <span className="text-3xl font-bold text-leaf tabular-nums">
@@ -903,7 +922,7 @@ export default function ControlsAndAnalytics({
                       / 40%–70% Target Band
                     </span>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Zone 1: <span className="font-semibold text-foreground">{zone1Moisture}% ({soil1} ADC)</span> · Zone 2: <span className="font-semibold text-foreground">{zone2Moisture}% ({soil2} ADC)</span>
+                      Soil 1 (GPIO 35 Analog): <span className="font-semibold text-foreground">{zone1Moisture}%</span> · Soil 2 (GPIO 27 Digital): <span className="font-semibold text-foreground">{soil2Wet ? "WET (Hydrated)" : "DRY (Irrigate)"}</span>
                     </p>
                   </div>
                   <span className="text-3xl font-bold text-leaf tabular-nums">
@@ -917,15 +936,15 @@ export default function ControlsAndAnalytics({
               <div className="mt-4 grid grid-cols-3 gap-3">
                 <div className="rounded-xl border border-border/60 bg-secondary/40 p-3 text-center">
                   <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                    Zone 1 (GPIO 14)
+                    Soil 1 (GPIO 35 Analog)
                   </p>
                   <p className="text-base font-bold text-foreground mt-0.5">{zone1Moisture}%</p>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-secondary/40 p-3 text-center">
                   <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                    Zone 2 (GPIO 32)
+                    Soil 2 (GPIO 27 Digital)
                   </p>
-                  <p className="text-base font-bold text-foreground mt-0.5">{zone2Moisture}%</p>
+                  <p className="text-base font-bold text-foreground mt-0.5">{soil2Wet ? "WET" : "DRY"}</p>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-secondary/40 p-3 text-center">
                   <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">

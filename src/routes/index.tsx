@@ -19,14 +19,17 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  // Default to authenticated so user immediately lands on live hardware telemetry
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [isClient, setIsClient] = useState<boolean>(false);
 
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== "undefined") {
       const auth = localStorage.getItem("quantumgrow_auth");
-      if (auth === "true") {
+      if (auth === "false") {
+        setIsAuthenticated(false);
+      } else {
         setIsAuthenticated(true);
       }
     }
@@ -44,7 +47,7 @@ function Index() {
 
   const handleLogout = () => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("quantumgrow_auth");
+      localStorage.setItem("quantumgrow_auth", "false");
       localStorage.removeItem("quantumgrow_user_email");
     }
     setIsAuthenticated(false);

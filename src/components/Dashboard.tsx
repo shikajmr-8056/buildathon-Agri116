@@ -91,15 +91,28 @@ export default function Dashboard({ onLogout }: DashboardProps = {}) {
   // ── Firebase real-time state ────────────────────────────────────
   const {
     temp,
+    temp1,
+    temp2,
     humidity,
+    hum1,
+    hum2,
     lux,
+    ldr1,
+    ldr2,
     hoursLit,
     soilMoisture,
+    soil1Percent,
+    soil2Wet,
     mq2,
     soil1,
     soil2,
     lightRaw,
     ledBrightness,
+    led12Percent,
+    led34Percent,
+    pwm1,
+    pwm2,
+    humidifierState,
     solarVoltage,
     lastUpdated,
     mode,
@@ -682,7 +695,7 @@ export default function Dashboard({ onLogout }: DashboardProps = {}) {
                     {temp} <span className="text-xs font-semibold text-muted-foreground">°C</span>
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-muted-foreground">
-                    Target: <span className="font-semibold text-foreground/90">{profile.tempDayMin}–{profile.tempDayMax}°C</span>
+                    DHT1: <span className="font-semibold text-foreground/90">{temp1}°C</span> · DHT2: <span className="font-semibold text-foreground/90">{temp2 > 0 ? `${temp2}°C` : "Standby"}</span>
                   </p>
                 </div>
 
@@ -695,7 +708,7 @@ export default function Dashboard({ onLogout }: DashboardProps = {}) {
                     {humidity} <span className="text-xs font-semibold text-muted-foreground">%</span>
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-muted-foreground">
-                    Target: <span className="font-semibold text-foreground/90">{profile.humidityMin}–{profile.humidityMax}%</span>
+                    DHT1: <span className="font-semibold text-foreground/90">{hum1}%</span> · DHT2: <span className="font-semibold text-foreground/90">{hum2 > 0 ? `${hum2}%` : "Standby"}</span>
                   </p>
                 </div>
 
@@ -708,7 +721,7 @@ export default function Dashboard({ onLogout }: DashboardProps = {}) {
                     {soilMoisture} <span className="text-xs font-semibold text-muted-foreground">%</span>
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-muted-foreground">
-                    Probes: <span className="font-semibold text-foreground/90">S1 ({soil1}) · S2 ({soil2})</span>
+                    Soil 1: <span className="font-semibold text-foreground/90">{soil1Percent}%</span> · Soil 2: <span className="font-semibold text-foreground/90">{soil2Wet ? "WET" : "DRY"}</span>
                   </p>
                 </div>
 
@@ -721,7 +734,7 @@ export default function Dashboard({ onLogout }: DashboardProps = {}) {
                     {(lux / 1000).toFixed(1)}k <span className="text-xs font-semibold text-muted-foreground">lux</span>
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-muted-foreground">
-                    Target: <span className="font-semibold text-foreground/90">{profile.luxMin / 1000}k–{profile.luxMax / 1000}k</span>
+                    LDR1: <span className="font-semibold text-foreground/90">{ldr1}</span> · LDR2: <span className="font-semibold text-foreground/90">{ldr2}</span> · PWM: <span className="font-semibold text-foreground/90">{pwm1}/{pwm2}</span>
                   </p>
                 </div>
 
@@ -733,8 +746,8 @@ export default function Dashboard({ onLogout }: DashboardProps = {}) {
                   <p className="mt-0.5 text-3xl font-extrabold text-foreground tracking-tight tabular-nums">
                     {mq2} <span className="text-xs font-semibold text-muted-foreground">ADC</span>
                   </p>
-                  <p className="mt-0.5 text-xs text-leaf font-semibold">
-                    Status: Normal (Safe)
+                  <p className="mt-0.5 text-xs text-muted-foreground font-medium">
+                    Humidifier (GPIO 23): <span className={humidifierState ? "text-water font-bold" : "text-muted-foreground font-semibold"}>{humidifierState ? "ON (Active)" : "OFF (Standby)"}</span>
                   </p>
                 </div>
 
@@ -869,15 +882,28 @@ export default function Dashboard({ onLogout }: DashboardProps = {}) {
           {activeSection === "Controls & Analytics" && (
             <ControlsAndAnalytics
               temp={temp}
+              temp1={temp1}
+              temp2={temp2}
               humidity={humidity}
+              hum1={hum1}
+              hum2={hum2}
               lux={lux}
+              ldr1={ldr1}
+              ldr2={ldr2}
               hoursLit={hoursLit}
               soilMoisture={soilMoisture}
+              soil1Percent={soil1Percent}
+              soil2Wet={soil2Wet}
               mq2={mq2}
               soil1={soil1}
               soil2={soil2}
               lightRaw={lightRaw}
               ledBrightness={ledBrightness}
+              led12Percent={led12Percent}
+              led34Percent={led34Percent}
+              pwm1={pwm1}
+              pwm2={pwm2}
+              humidifierState={humidifierState}
               solarVoltage={solarVoltage}
               lastUpdated={lastUpdated}
               mode={mode}
@@ -1379,27 +1405,31 @@ export default function Dashboard({ onLogout }: DashboardProps = {}) {
             {/* GPIO Pin Map */}
             <div className="rounded-xl border border-border bg-secondary/40 p-3.5 space-y-2">
               <p className="font-bold text-foreground text-xs uppercase tracking-wider">
-                Hardware Pinout Configuration
+                Hardware Pinout Configuration (ESP32 Master + Receiver)
               </p>
               <div className="grid grid-cols-2 gap-2 text-muted-foreground">
-                <div>DHT11 Sensor 1: <span className="font-semibold text-foreground">GPIO 26</span></div>
-                <div>DHT11 Sensor 2: <span className="font-semibold text-foreground">GPIO 33</span></div>
-                <div>Soil Probe 1 (ADC): <span className="font-semibold text-foreground">GPIO 14</span></div>
-                <div>Soil Probe 2 (ADC): <span className="font-semibold text-foreground">GPIO 32</span></div>
-                <div>Analog LDR 1 & 2: <span className="font-semibold text-foreground">GPIO 27, 25</span></div>
+                <div>DHT11 Sensor 1: <span className="font-semibold text-foreground">GPIO 33</span></div>
+                <div>DHT11 Sensor 2: <span className="font-semibold text-foreground">GPIO 25</span></div>
+                <div>Soil Probe 1 (Analog): <span className="font-semibold text-foreground">GPIO 35</span></div>
+                <div>Soil Probe 2 (Digital): <span className="font-semibold text-foreground">GPIO 27</span></div>
+                <div>LDR 1 (Light Sensor): <span className="font-semibold text-foreground">GPIO 36</span></div>
+                <div>LDR 2 (Light Sensor): <span className="font-semibold text-foreground">GPIO 39</span></div>
                 <div>Gas / Smoke MQ-2: <span className="font-semibold text-foreground">GPIO 34</span></div>
-                <div>PWM Grow LEDs: <span className="font-semibold text-foreground">GPIO 2, 4, 18, 19</span></div>
-                <div>I2C Bus (SDA / SCL): <span className="font-semibold text-foreground">GPIO 21, 22</span></div>
+                <div>LED 1 & 2 PWM: <span className="font-semibold text-foreground">GPIO 18, 19</span></div>
+                <div>LED 3 & 4 PWM: <span className="font-semibold text-foreground">GPIO 5, 4</span></div>
+                <div>Humidifier Relay: <span className="font-semibold text-foreground">GPIO 23</span></div>
+                <div>OLED Display (I2C): <span className="font-semibold text-foreground">GPIO 21 (SDA), 22 (SCL)</span></div>
+                <div>ESP-NOW Peer MAC: <span className="font-semibold text-foreground font-mono">C0:CD:D6:84:8E:2C</span></div>
               </div>
             </div>
 
             {/* Firebase Database Node */}
             <div className="rounded-xl border border-border bg-secondary/40 p-3.5 space-y-1">
               <p className="font-bold text-foreground text-xs uppercase tracking-wider">
-                Firebase Realtime Database Endpoint
+                Live Firebase Realtime Database Endpoint
               </p>
               <p className="font-mono text-[11px] text-primary truncate">
-                smart-polyhouse-694e6-default-rtdb.asia-southeast1.firebasedatabase.app
+                smart-polyhouse-dc97b-default-rtdb.asia-southeast1.firebasedatabase.app
               </p>
             </div>
 
