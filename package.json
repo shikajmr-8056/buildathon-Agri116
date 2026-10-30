@@ -7,7 +7,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --port 3000 --host",
     "build": "vite build && node scripts/copy-dist.js",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
