@@ -1,3 +1,12 @@
+function withTimeout<T>(promise: Promise<T>, timeoutMs = 1500): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('Firebase timeout')), timeoutMs)
+    ),
+  ]);
+}
+
 import { db, storage } from "@/lib/firebase";
 import { ref as dbRef, set, get, child } from "firebase/database";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -19,7 +28,7 @@ const STORAGE_KEYS = {
 };
 
 // Default seed crop for polyhouse demonstration
-const DEFAULT_SEED_CROP: CropProfile = {
+export const DEFAULT_SEED_CROP: CropProfile = {
   id: "crop_tomato_01",
   cropName: "Tomato",
   variety: "Arka Rakshak (High-Yield F1)",
@@ -42,7 +51,7 @@ const DEFAULT_SEED_CROP: CropProfile = {
   updatedAt: new Date().toISOString(),
 };
 
-const DEFAULT_SEED_APPLICATIONS: FertilizerApplicationRecord[] = [
+export const DEFAULT_SEED_APPLICATIONS: FertilizerApplicationRecord[] = [
   {
     id: "app_seed_01",
     cropId: "crop_tomato_01",
@@ -140,7 +149,7 @@ export const cropService = {
   async getCrops(): Promise<CropProfile[]> {
     // Try Firebase RTDB first
     try {
-      const snapshot = await get(child(dbRef(db), "cropcare/cropProfiles"));
+      const snapshot = await withTimeout(get(child(dbRef(db), "cropcare/cropProfiles")), 1500);
       if (snapshot.exists()) {
         const val = snapshot.val();
         const cropsList: CropProfile[] = Object.values(val);
@@ -206,7 +215,7 @@ export const cropService = {
   // ── Applications ───────────────────────────────────────────────────
   async getApplications(cropId?: string): Promise<FertilizerApplicationRecord[]> {
     try {
-      const snapshot = await get(child(dbRef(db), "cropcare/fertilizerApplications"));
+      const snapshot = await withTimeout(get(child(dbRef(db), "cropcare/fertilizerApplications")), 1500);
       if (snapshot.exists()) {
         const val = snapshot.val();
         const list: FertilizerApplicationRecord[] = Object.values(val);
@@ -267,7 +276,7 @@ export const cropService = {
   // ── Plant Health Inspections ────────────────────────────────────────
   async getInspections(cropId?: string): Promise<PlantHealthInspection[]> {
     try {
-      const snapshot = await get(child(dbRef(db), "cropcare/plantHealthInspections"));
+      const snapshot = await withTimeout(get(child(dbRef(db), "cropcare/plantHealthInspections")), 1500);
       if (snapshot.exists()) {
         const val = snapshot.val();
         const list: PlantHealthInspection[] = Object.values(val);
@@ -317,7 +326,7 @@ export const cropService = {
   // ── Reminders ──────────────────────────────────────────────────────
   async getReminders(cropId?: string): Promise<CropReminder[]> {
     try {
-      const snapshot = await get(child(dbRef(db), "cropcare/cropReminders"));
+      const snapshot = await withTimeout(get(child(dbRef(db), "cropcare/cropReminders")), 1500);
       if (snapshot.exists()) {
         const val = snapshot.val();
         const list: CropReminder[] = Object.values(val);
@@ -391,7 +400,7 @@ export const cropService = {
   // ── Inventory ──────────────────────────────────────────────────────
   async getInventory(): Promise<InventoryItem[]> {
     try {
-      const snapshot = await get(child(dbRef(db), "cropcare/cropInventory"));
+      const snapshot = await withTimeout(get(child(dbRef(db), "cropcare/cropInventory")), 1500);
       if (snapshot.exists()) {
         const val = snapshot.val();
         const list: InventoryItem[] = Object.values(val);

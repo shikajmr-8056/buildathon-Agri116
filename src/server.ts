@@ -18,8 +18,15 @@ async function getServerEntry(): Promise<ServerEntry> {
   return serverEntryPromise;
 }
 
-function brandedErrorResponse(): Response {
-  return new Response(renderErrorPage(), {
+function brandedErrorResponse(err?: unknown): Response {
+  const details =
+    err instanceof Error
+      ? `${err.name}: ${err.message}\n${err.stack}`
+      : typeof err === "string"
+      ? err
+      : undefined;
+
+  return new Response(renderErrorPage(details), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
   });
@@ -62,8 +69,9 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     return response;
   }
 
-  console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
-  return brandedErrorResponse();
+  const captured = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
+  console.error(captured);
+  return brandedErrorResponse(captured);
 }
 
 export default {
@@ -73,8 +81,8 @@ export default {
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
-      console.error(error);
-      return brandedErrorResponse();
+      console.error("Server catch caught error:", error);
+      return brandedErrorResponse(error);
     }
   },
 };

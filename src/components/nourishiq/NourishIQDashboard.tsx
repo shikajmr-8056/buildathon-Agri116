@@ -7,7 +7,7 @@ import {
   InventoryItem,
   NutrientRecommendation,
 } from "@/types/nourishiq";
-import { cropService } from "@/services/nourishiq/cropService";
+import { cropService, DEFAULT_SEED_CROP, DEFAULT_SEED_APPLICATIONS } from "@/services/nourishiq/cropService";
 import { calculateCropStage } from "@/lib/nourishiq/growthStageEngine";
 import { getCropProfile } from "@/lib/nourishiq/cropProfiles";
 import { generateNutrientRecommendations } from "@/lib/nourishiq/fertilizerCalculator";
@@ -61,10 +61,10 @@ export default function NourishIQDashboard({
   currentHumidity = 68,
 }: NourishIQDashboardProps) {
   // ── State ─────────────────────────────────────────────────────────
-  const [crops, setCrops] = useState<CropProfile[]>([]);
-  const [activeCropId, setActiveCropId] = useState<string>("");
+  const [crops, setCrops] = useState<CropProfile[]>([DEFAULT_SEED_CROP]);
+  const [activeCropId, setActiveCropId] = useState<string>(DEFAULT_SEED_CROP.id);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
-  const [applications, setApplications] = useState<FertilizerApplicationRecord[]>([]);
+  const [applications, setApplications] = useState<FertilizerApplicationRecord[]>(DEFAULT_SEED_APPLICATIONS);
   const [inspections, setInspections] = useState<PlantHealthInspection[]>([]);
   const [reminders, setReminders] = useState<CropReminder[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);

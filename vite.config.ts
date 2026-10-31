@@ -4,10 +4,6 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 // Redirect TanStack Start bundled server entry to src/server.ts (SSR handler)
 export default defineConfig({
-  server: {
-    port: 3000,
-    host: true,
-  },
   cloudflare: false,
   tanstackStart: {
     server: { entry: "server" },

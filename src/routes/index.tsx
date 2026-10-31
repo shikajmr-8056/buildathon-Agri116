@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  // Default to authenticated so user immediately lands on live hardware telemetry
+  // Default to true so the dashboard is immediately accessible on load
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [isClient, setIsClient] = useState<boolean>(false);
 
@@ -27,10 +27,9 @@ function Index() {
     setIsClient(true);
     if (typeof window !== "undefined") {
       const auth = localStorage.getItem("quantumgrow_auth");
+      // If user explicitly signed out, show login page
       if (auth === "false") {
         setIsAuthenticated(false);
-      } else {
-        setIsAuthenticated(true);
       }
     }
   }, []);
